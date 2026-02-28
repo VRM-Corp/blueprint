@@ -1,36 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Blueprint — Interactive Event Projection
 
-## Getting Started
+A full-screen projection web app for the **Blueprint** event. Features an animated blueprint grid background with floating particles, star graphics, and real-time audience interaction via QR code — attendees send messages and drawings that float across the projection.
 
-First, run the development server:
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000` on the projection screen.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Supabase Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a free project at [supabase.com](https://supabase.com)
+2. In the SQL Editor, run:
 
-## Learn More
+```sql
+create table messages (
+  id uuid default gen_random_uuid() primary key,
+  text text not null,
+  created_at timestamptz default now()
+);
 
-To learn more about Next.js, take a look at the following resources:
+create table drawings (
+  id uuid default gen_random_uuid() primary key,
+  image_data text not null,
+  created_at timestamptz default now()
+);
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+-- Enable Realtime for both tables
+alter publication supabase_realtime add table messages;
+alter publication supabase_realtime add table drawings;
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Copy your project URL and anon key from **Settings → API**
+4. Update `.env.local`:
 
-## Deploy on Vercel
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Two Views
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Projection Display (`/`)
+
+The main screen to display on a projector. Two phases:
+
+- **Pre-event:** Event title, QR code (centered), logo branding, star graphics in corners, floating particles
+- **During event:** Title moves to top-left, QR code shrinks to bottom-right, logos shift to bottom-left, audience messages and drawings float across
+
+### Audience Interact Page (`/interact`)
+
+Mobile-friendly page attendees access by scanning the QR code:
+
+- **Message tab:** Type a message (up to 140 chars) that floats across the projection
+- **Draw tab:** Finger-draw on a canvas, pick colors/sizes, and send it to the big screen
+
+## Keyboard Controls (Projection)
+
+| Key               | Action                                    |
+| ----------------- | ----------------------------------------- |
+| `Space` / `Enter` | Toggle between pre-event and during phase |
+| `1`               | Jump to pre-event phase                   |
+| `2`               | Jump to during-event phase                |
+| `F`               | Toggle fullscreen                         |
+
+## Customizing
+
+Edit `src/lib/config.ts` to change event details, timing, and asset paths:
+
+```ts
+export const EVENT_CONFIG = {
+  title: "Blueprint",
+  venue: "VROOM",
+  messageDurationMs: 10_000,
+  drawingDurationMs: 15_000,
+  assets: { ... },
+  projection: { ... },
+};
+```
+
+Drop PNG/SVG files into `public/assets/` and reference them in the config.
+
+## Deploying
+
+Deploy to [Vercel](https://vercel.com) (zero-config for Next.js):
+
+```bash
+npx vercel
+```
+
+Set the environment variables in Vercel's dashboard. The QR code automatically points to your deployed URL.
+
+## Tech Stack
+
+- **Next.js 14** (App Router)
+- **Supabase** Realtime (Postgres changes)
+- **Framer Motion** (animations)
+- **Tailwind CSS** (styling)
+- **react-qrcode-logo** (QR code)

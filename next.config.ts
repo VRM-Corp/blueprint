@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [],
+    dangerouslyAllowSVG: true,
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;

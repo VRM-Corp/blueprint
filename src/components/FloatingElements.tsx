@@ -1,42 +1,21 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 
-function Particle({
-  x,
-  y,
-  size,
-  delay,
-  duration,
-}: {
+type ParticleData = {
+  id: number;
   x: number;
   y: number;
   size: number;
   delay: number;
   duration: number;
-}) {
-  return (
-    <div
-      className="absolute rounded-full"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        width: size,
-        height: size,
-        background:
-          "radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
-        animation: `particle-pulse ${duration}s ease-in-out ${delay}s infinite`,
-      }}
-    />
-  );
-}
+};
 
 function edgeParticle(): { x: number; y: number } {
   const cx = 50;
   const cy = 45;
   const angle = Math.random() * Math.PI * 2;
-  const minR = 30;
-  const r = minR + Math.random() * 30;
+  const r = 30 + Math.random() * 30;
   return {
     x: Math.max(0, Math.min(100, cx + r * Math.cos(angle))),
     y: Math.max(0, Math.min(100, cy + r * Math.sin(angle))),
@@ -44,8 +23,10 @@ function edgeParticle(): { x: number; y: number } {
 }
 
 export default function FloatingElements() {
-  const particles = useMemo(
-    () =>
+  const [particles, setParticles] = useState<ParticleData[]>([]);
+
+  useEffect(() => {
+    setParticles(
       Array.from({ length: 30 }, (_, i) => {
         const pos = edgeParticle();
         return {
@@ -56,20 +37,27 @@ export default function FloatingElements() {
           delay: Math.random() * 8,
           duration: 3 + Math.random() * 5,
         };
-      }),
-    []
-  );
+      })
+    );
+  }, []);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
       {particles.map((p) => (
-        <Particle
+        <div
           key={p.id}
-          x={p.x}
-          y={p.y}
-          size={p.size}
-          delay={p.delay}
-          duration={p.duration}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            background:
+              "radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
+            animation: `particle-pulse ${p.duration}s ease-in-out ${p.delay}s infinite`,
+          }}
         />
       ))}
     </div>

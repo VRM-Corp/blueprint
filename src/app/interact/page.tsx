@@ -1,184 +1,129 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { Send, Pencil, MessageSquare } from "lucide-react";
 import DrawingCanvas from "@/components/DrawingCanvas";
+import { Toaster } from "@/components/ui/sonner";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
 import { EVENT_CONFIG } from "@/lib/config";
 
-type Tab = "message" | "draw";
-
 export default function InteractPage() {
-  const [tab, setTab] = useState<Tab>("message");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const flashToast = useCallback(() => {
-    setSent(true);
-    setTimeout(() => setSent(false), EVENT_CONFIG.toastDurationMs);
-  }, []);
 
   const sendMessage = useCallback(async () => {
     if (!message.trim() || sending) return;
     setSending(true);
     try {
-      await supabase.from("messages").insert({ text: message.trim() });
+      const { error } = await supabase
+        .from("messages")
+        .insert({ text: message.trim() });
+      if (error) throw error;
       setMessage("");
-      flashToast();
+      toast.success("Your message is live!");
     } catch {
-      /* silent in event context */
+      toast.error("Failed to send. Try again!");
     } finally {
       setSending(false);
     }
-  }, [message, sending, flashToast]);
+  }, [message, sending]);
 
-  const sendDrawing = useCallback(
-    async (dataUrl: string) => {
-      setSending(true);
-      try {
-        await supabase.from("drawings").insert({ image_data: dataUrl });
-        flashToast();
-      } catch {
-        /* silent in event context */
-      } finally {
-        setSending(false);
-      }
-    },
-    [flashToast]
-  );
+  const sendDrawing = useCallback(async (dataUrl: string) => {
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from("drawings")
+        .insert({ image_data: dataUrl });
+      if (error) throw error;
+      toast.success("Your drawing is live!");
+    } catch {
+      toast.error("Failed to send. Try again!");
+    } finally {
+      setSending(false);
+    }
+  }, []);
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{
-        background:
-          "linear-gradient(180deg, #0a1628 0%, #0f1d35 50%, #0a1628 100%)",
-        fontFamily: "Advercase, sans-serif",
-      }}
-    >
-      {/* Header */}
-      <div className="pt-12 pb-6 px-6 text-center">
-        <h1
-          className="text-4xl tracking-tight text-white"
-          style={{ fontFamily: "Kabond, serif" }}
-        >
-          {EVENT_CONFIG.title}
-        </h1>
-        <p className="text-white/40 text-sm mt-1 tracking-widest uppercase">
-          {EVENT_CONFIG.venue}
-        </p>
-      </div>
+    <div className="interact-page min-h-[100dvh] flex items-start justify-center">
+      <Toaster position="top-center" />
 
-      {/* Tab switcher */}
-      <div className="px-6 mb-6">
-        <div className="flex rounded-xl overflow-hidden border border-white/10">
-          {(["message", "draw"] as Tab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="flex-1 py-3 text-sm font-medium tracking-wider uppercase transition-all"
-              style={{
-                background:
-                  tab === t ? "rgba(74, 127, 255, 0.2)" : "transparent",
-                color: tab === t ? "white" : "rgba(255,255,255,0.4)",
-                borderBottom:
-                  tab === t
-                    ? "2px solid var(--accent)"
-                    : "2px solid transparent",
-              }}
-            >
-              {t === "message" ? "Message" : "Draw"}
-            </button>
-          ))}
-        </div>
-      </div>
+      <div className="interact-card w-full max-w-[430px] mx-auto">
+        <header className="text-center pt-14 pb-8">
+          <h1
+            className="text-5xl tracking-tight text-white"
+            style={{ fontFamily: "Kabond, serif" }}
+          >
+            {EVENT_CONFIG.title}
+          </h1>
+          <p className="text-white/30 text-[11px] mt-2 tracking-[0.35em] uppercase font-medium">
+            {EVENT_CONFIG.venue}
+          </p>
+        </header>
 
-      {/* Tab content */}
-      <div className="flex-1 px-6 pb-8">
-        <AnimatePresence mode="wait">
-          {tab === "message" && (
-            <motion.div
-              key="message"
-              className="flex flex-col gap-4"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <p className="text-white/50 text-sm">
-                Your message will float across the projection screen.
-              </p>
-              <textarea
-                value={message}
-                onChange={(e) =>
-                  setMessage(
-                    e.target.value.slice(0, EVENT_CONFIG.messageMaxLength)
-                  )
-                }
-                placeholder="Type your message..."
-                maxLength={EVENT_CONFIG.messageMaxLength}
-                rows={3}
-                className="w-full p-4 rounded-xl text-white placeholder-white/30 text-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                }}
-              />
-              <div className="flex items-center justify-between">
-                <span className="text-white/30 text-xs">
-                  {message.length}/{EVENT_CONFIG.messageMaxLength}
-                </span>
-                <button
-                  onClick={sendMessage}
-                  disabled={!message.trim() || sending}
-                  className="px-8 py-3 rounded-xl text-sm font-medium tracking-wider uppercase transition-all disabled:opacity-30"
-                  style={{
-                    background: message.trim()
-                      ? "rgba(74, 127, 255, 0.8)"
-                      : "rgba(255,255,255,0.1)",
-                    color: "white",
-                  }}
-                >
-                  {sending ? "Sending..." : "Send"}
-                </button>
+        <div className="interact-card-body mx-4 rounded-2xl">
+          <Tabs defaultValue="message">
+            <TabsList className="interact-tabs-list w-full">
+              <TabsTrigger value="message" className="interact-tab">
+                <MessageSquare className="size-4" />
+                Message
+              </TabsTrigger>
+              <TabsTrigger value="draw" className="interact-tab">
+                <Pencil className="size-4" />
+                Draw
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="message" className="mt-0">
+              <div className="space-y-6">
+                <p className="text-white/50 text-sm">
+                  Your message will float across the projection screen.
+                </p>
+
+                <Textarea
+                  value={message}
+                  onChange={(e) =>
+                    setMessage(
+                      e.target.value.slice(0, EVENT_CONFIG.messageMaxLength)
+                    )
+                  }
+                  placeholder="Type your message..."
+                  maxLength={EVENT_CONFIG.messageMaxLength}
+                  rows={4}
+                  className="interact-textarea"
+                />
+
+                <div className="flex items-center justify-between">
+                  <span className="text-white/25 text-xs tabular-nums">
+                    {message.length}/{EVENT_CONFIG.messageMaxLength}
+                  </span>
+                  <Button
+                    onClick={sendMessage}
+                    disabled={!message.trim() || sending}
+                    className="interact-btn-primary"
+                  >
+                    {sending ? "Sending..." : "Send"}
+                    {!sending && <Send className="size-4" />}
+                  </Button>
+                </div>
               </div>
-            </motion.div>
-          )}
+            </TabsContent>
 
-          {tab === "draw" && (
-            <motion.div
-              key="draw"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <p className="text-white/50 text-sm mb-4">
-                Draw something and it will pop up on screen.
-              </p>
-              <DrawingCanvas onSubmit={sendDrawing} submitting={sending} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+            <TabsContent value="draw" className="mt-0">
+              <div className="space-y-6">
+                <p className="text-white/50 text-sm">
+                  Draw something and it will appear on screen.
+                </p>
+                <DrawingCanvas onSubmit={sendDrawing} submitting={sending} />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
 
-        {/* Success toast */}
-        <AnimatePresence>
-          {sent && (
-            <motion.div
-              className="fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-sm font-medium tracking-wide"
-              style={{
-                background: "rgba(74, 127, 255, 0.9)",
-                backdropFilter: "blur(12px)",
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-            >
-              Sent to the big screen!
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="h-8" />
       </div>
     </div>
   );

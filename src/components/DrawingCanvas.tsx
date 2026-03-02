@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
+import { Eraser, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const COLORS = [
   { name: "White", value: "#ffffff" },
@@ -102,12 +104,14 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
 
   return (
     <div className="flex flex-col gap-4 w-full">
+      {/* Canvas */}
       <div
-        className="relative w-full rounded-xl overflow-hidden border border-white/10"
+        className="relative w-full rounded-[14px] overflow-hidden"
         style={{
-          aspectRatio: "1",
-          background: "rgba(255,255,255,0.03)",
+          aspectRatio: "4/3",
           touchAction: "none",
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.08)",
         }}
       >
         <canvas
@@ -123,16 +127,20 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
         />
       </div>
 
-      <div className="flex items-center gap-3 justify-between">
+      {/* Tools row */}
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {COLORS.map((c) => (
             <button
               key={c.value}
-              className="w-8 h-8 rounded-full border-2 transition-transform"
+              className="w-7 h-7 rounded-full transition-all"
               style={{
                 backgroundColor: c.value,
-                borderColor: color === c.value ? "white" : "transparent",
-                transform: color === c.value ? "scale(1.2)" : "scale(1)",
+                boxShadow:
+                  color === c.value
+                    ? `0 0 0 2.5px rgba(10,22,40,0.95), 0 0 0 4px ${c.value}`
+                    : "none",
+                transform: color === c.value ? "scale(1.1)" : "scale(1)",
               }}
               onClick={() => setColor(c.value)}
               aria-label={c.name}
@@ -140,18 +148,18 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {[2, 4, 8].map((w) => (
             <button
               key={w}
-              className="flex items-center justify-center w-8 h-8 rounded-full border transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-lg transition-all"
               style={{
-                borderColor:
-                  lineWidth === w ? "white" : "rgba(255,255,255,0.2)",
                 background:
+                  lineWidth === w ? "rgba(255,255,255,0.10)" : "transparent",
+                border:
                   lineWidth === w
-                    ? "rgba(255,255,255,0.15)"
-                    : "transparent",
+                    ? "1px solid rgba(255,255,255,0.15)"
+                    : "1px solid transparent",
               }}
               onClick={() => setLineWidth(w)}
               aria-label={`Line width ${w}`}
@@ -165,24 +173,20 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
         </div>
       </div>
 
+      {/* Action buttons */}
       <div className="flex gap-3">
-        <button
-          onClick={clear}
-          className="flex-1 py-3 rounded-xl border border-white/20 text-white/70 text-sm font-medium tracking-wider uppercase transition-colors hover:bg-white/5 active:bg-white/10"
-        >
+        <Button onClick={clear} className="interact-btn-outline flex-1">
+          <Eraser className="size-4" />
           Clear
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={handleSubmit}
           disabled={!hasContent || submitting}
-          className="flex-1 py-3 rounded-xl text-sm font-medium tracking-wider uppercase transition-all disabled:opacity-30"
-          style={{
-            background: hasContent ? "rgba(74, 127, 255, 0.8)" : "rgba(255,255,255,0.1)",
-            color: "white",
-          }}
+          className="interact-btn-primary flex-1"
         >
-          {submitting ? "Sending..." : "Send Drawing"}
-        </button>
+          {submitting ? "Sending..." : "Send"}
+          {!submitting && <Send className="size-4" />}
+        </Button>
       </div>
     </div>
   );

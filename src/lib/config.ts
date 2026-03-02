@@ -2,17 +2,14 @@ export const EVENT_CONFIG = {
   title: "Blueprint",
   venue: "VROOM",
 
-  messageDurationMs: 10_000,
-  drawingDurationMs: 15_000,
   messageMaxLength: 140,
-  toastDurationMs: 2_000,
 
   assets: {
     logos: [
       { src: "/assets/vroomlogo.svg", alt: "Vroom" },
       { src: "/assets/LORE_Logo-Symbol-Color=Porcelain.svg", alt: "Lore" },
     ],
-    starGraphic: "/assets/Untitled design (5).svg",
+    starGraphic: "/assets/star-graphic.svg",
   },
 
   projection: {

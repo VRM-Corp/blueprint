@@ -89,6 +89,20 @@ body {
   overflow: hidden;
 }
 
+.projection-bg {
+  background-color: var(--navy);
+  background-image:
+    linear-gradient(var(--grid-line-minor) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-line-minor) 0.5px, transparent 0.5px),
+    linear-gradient(var(--grid-line-major) 0.8px, transparent 0.8px),
+    linear-gradient(90deg, var(--grid-line-major) 0.8px, transparent 0.8px);
+  background-size:
+    12px 12px,
+    12px 12px,
+    60px 60px,
+    60px 60px;
+}
+
 /* ── Interact page ── */
 
 .interact-page {

@@ -27,7 +27,7 @@ export default function FloatingElements() {
 
   useEffect(() => {
     setParticles(
-      Array.from({ length: 30 }, (_, i) => {
+      Array.from({ length: 15 }, (_, i) => {
         const pos = edgeParticle();
         return {
           id: i,
@@ -57,6 +57,8 @@ export default function FloatingElements() {
             background:
               "radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
             animation: `particle-pulse ${p.duration}s ease-in-out ${p.delay}s infinite`,
+            willChange: "transform, opacity",
+            contain: "strict",
           }}
         />
       ))}

@@ -2,13 +2,16 @@
 
 import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import AnimatedBackground from "@/components/AnimatedBackground";
+import dynamic from "next/dynamic";
 import FloatingElements from "@/components/FloatingElements";
 import LogoStrip from "@/components/LogoStrip";
-import QRCodeDisplay from "@/components/QRCodeDisplay";
 import MessageBubble from "@/components/MessageBubble";
 import DrawingBubble from "@/components/DrawingBubble";
 import { usePhase } from "@/hooks/usePhase";
+
+const QRCodeDisplay = dynamic(() => import("@/components/QRCodeDisplay"), {
+  ssr: false,
+});
 import { useWindowSize } from "@/hooks/useWindowSize";
 import { useBubblePositions } from "@/hooks/useBubblePositions";
 import { useProjectionData } from "@/hooks/useRealtimeData";
@@ -72,8 +75,7 @@ export default function ProjectionPage() {
   }, [w, h]);
 
   return (
-    <div className="fixed inset-0 overflow-hidden select-none">
-      <AnimatedBackground />
+    <div className="fixed inset-0 overflow-hidden select-none projection-bg">
       <FloatingElements />
 
       {!isPre && (
@@ -221,6 +223,8 @@ export default function ProjectionPage() {
           <img
             src={assets.starGraphic}
             alt=""
+            loading="lazy"
+            decoding="async"
             className="w-[28vw] pointer-events-none"
           />
         </motion.div>

@@ -45,7 +45,7 @@ export default function DraggableBubble({
         e.preventDefault();
         onDelete();
       }}
-      style={{ left: `${x}%`, top: `${y}%`, zIndex, ...style, x: dragX, y: dragY }}
+      style={{ left: `${x}%`, top: `${y}%`, zIndex, willChange: "transform", ...style, x: dragX, y: dragY }}
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1, rotate: rotation }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.3 } }}

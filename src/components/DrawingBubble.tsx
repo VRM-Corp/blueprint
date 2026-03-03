@@ -40,6 +40,8 @@ export default function DrawingBubble({
       <img
         src={imageData}
         alt=""
+        loading="lazy"
+        decoding="async"
         className="w-48 h-48 object-contain select-none rounded-xl"
         draggable={false}
       />

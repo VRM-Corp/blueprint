@@ -31,7 +31,7 @@ export default function DrawingBubble({
           avatarUrl={avatarUrl}
           contactIcon={contactIcon}
           contactHandle={contactHandle}
-          className="px-3 pt-2.5 pb-1"
+          className="mb-2"
         />
       )}
       {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import FloatingElements from "@/components/FloatingElements";
@@ -38,7 +38,8 @@ export default function ProjectionPage() {
 
   const isPre = phase === "pre-event";
   const zCounterRef = useRef(0);
-  const [zOverrides, setZOverrides] = useState<Record<string, number>>({});
+  const zMapRef = useRef<Record<string, number>>({});
+  const [, setZTick] = useState(0);
 
   const allBubbles = useMemo(() => {
     const items: Array<{ type: "message" | "drawing"; id: string; sender_name?: string; data: Message | Drawing }> = [
@@ -48,6 +49,43 @@ export default function ProjectionPage() {
     items.sort((a, b) => new Date(a.data.created_at).getTime() - new Date(b.data.created_at).getTime());
     return items;
   }, [messages, drawings]);
+
+  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
+  const queuedRef = useRef<Set<string>>(new Set());
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    const newIds = allBubbles
+      .map((b) => b.id)
+      .filter((id) => !queuedRef.current.has(id));
+
+    if (newIds.length === 0) return;
+    newIds.forEach((id) => queuedRef.current.add(id));
+
+    if (newIds.length <= 2) {
+      setVisibleIds((prev) => {
+        const next = new Set(prev);
+        newIds.forEach((id) => next.add(id));
+        return next;
+      });
+      return;
+    }
+
+    let i = 0;
+    const flush = () => {
+      if (i >= newIds.length) return;
+      setVisibleIds((prev) => new Set([...prev, newIds[i]]));
+      i++;
+      if (i < newIds.length) {
+        timerRef.current = setTimeout(flush, 80);
+      }
+    };
+    flush();
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [allBubbles]);
 
   const contactByName = useMemo(() => {
     const map: Record<string, { icon?: string; handle?: string; avatar?: string }> = {};
@@ -81,7 +119,11 @@ export default function ProjectionPage() {
       {!isPre && (
         <div className="fixed inset-0" style={{ zIndex: 2 }}>
           <AnimatePresence>
-            {allBubbles.map((item, index) => {
+            {allBubbles.filter((b) => visibleIds.has(b.id)).map((item) => {
+              if (!(item.id in zMapRef.current)) {
+                zCounterRef.current += 1;
+                zMapRef.current[item.id] = zCounterRef.current;
+              }
               const pos = ensurePosition(item.id);
               const contact = item.sender_name ? contactByName[item.sender_name] : undefined;
               const shared = {
@@ -92,7 +134,13 @@ export default function ProjectionPage() {
                 x: pos.x,
                 y: pos.y,
                 rotation: pos.rotation,
-                zIndex: zOverrides[item.id] ?? (index + 1),
+                zIndex: zMapRef.current[item.id],
+              };
+
+              const bringToFront = (id: string) => {
+                zCounterRef.current += 1;
+                zMapRef.current[id] = zCounterRef.current;
+                setZTick((n) => n + 1);
               };
 
               if (item.type === "message") {
@@ -103,8 +151,7 @@ export default function ProjectionPage() {
                     {...shared}
                     onDragEnd={(px, py) => {
                       handleDragEnd(item.id, px, py);
-                      zCounterRef.current += 1;
-                      setZOverrides((prev) => ({ ...prev, [item.id]: 1000 + zCounterRef.current }));
+                      bringToFront(item.id);
                     }}
                     onDelete={() => {
                       removePosition(item.id);
@@ -121,8 +168,7 @@ export default function ProjectionPage() {
                   {...shared}
                   onDragEnd={(px, py) => {
                     handleDragEnd(item.id, px, py);
-                    zCounterRef.current += 1;
-                    setZOverrides((prev) => ({ ...prev, [item.id]: 1000 + zCounterRef.current }));
+                    bringToFront(item.id);
                   }}
                   onDelete={() => {
                     removePosition(item.id);

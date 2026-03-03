@@ -23,9 +23,9 @@ export default function MessageBubble({ text, ...bubble }: Props) {
       {...bubble}
       className="px-8 py-4 rounded-2xl max-w-lg"
       style={{
-        background: "rgba(255, 255, 255, 0.06)",
+        background: "var(--glass-6)",
         backdropFilter: "blur(16px)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
+        border: "1px solid var(--glass-10)",
         boxShadow: "0 4px 30px rgba(0, 0, 0, 0.3)",
         fontFamily: "var(--font-inter)",
       }}

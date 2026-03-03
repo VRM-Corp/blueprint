@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import FloatingElements from "@/components/FloatingElements";
+import LogoStrip from "@/components/LogoStrip";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import MessageBubble from "@/components/MessageBubble";
 import DrawingBubble from "@/components/DrawingBubble";
@@ -90,7 +91,6 @@ export default function ProjectionPage() {
         </div>
       )}
 
-      {/* Title */}
       <motion.div
         className="fixed flex flex-col"
         style={{ zIndex: 3 }}
@@ -135,7 +135,6 @@ export default function ProjectionPage() {
         </motion.h1>
       </motion.div>
 
-      {/* QR code */}
       <motion.div
         className="fixed"
         style={{ zIndex: 3, transformOrigin: "top left" }}
@@ -151,7 +150,6 @@ export default function ProjectionPage() {
         <QRCodeDisplay />
       </motion.div>
 
-      {/* Logos */}
       <motion.div
         className="fixed flex items-center gap-6"
         style={{ zIndex: 4 }}
@@ -164,18 +162,9 @@ export default function ProjectionPage() {
         }}
         transition={{ duration: P.transitionDuration, ease: "easeInOut" }}
       >
-        {assets.logos.map((logo) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={logo.src}
-            src={logo.src}
-            alt={logo.alt}
-            className="h-10 opacity-60"
-          />
-        ))}
+        <LogoStrip />
       </motion.div>
 
-      {/* Corner star graphics */}
       {CORNER_POSITIONS.map((pos, i) => (
         <motion.div
           key={i}

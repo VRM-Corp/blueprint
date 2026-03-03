@@ -32,6 +32,18 @@
   --navy: #0a1628;
   --navy-light: #12233d;
   --radius: 0.625rem;
+
+  --glass-2: rgba(255, 255, 255, 0.02);
+  --glass-3: rgba(255, 255, 255, 0.03);
+  --glass-4: rgba(255, 255, 255, 0.04);
+  --glass-5: rgba(255, 255, 255, 0.05);
+  --glass-6: rgba(255, 255, 255, 0.06);
+  --glass-8: rgba(255, 255, 255, 0.08);
+  --glass-10: rgba(255, 255, 255, 0.10);
+  --glass-15: rgba(255, 255, 255, 0.15);
+
+  --grid-line-minor: rgba(255, 255, 255, 0.03);
+  --grid-line-major: rgba(255, 255, 255, 0.07);
   --background: oklch(0.10 0.02 250);
   --foreground: oklch(0.97 0 0);
   --card: oklch(0.14 0.02 250);
@@ -65,12 +77,6 @@
   --sidebar-ring: oklch(0.62 0.18 260);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 html,
 body {
   background: var(--navy);
@@ -85,23 +91,46 @@ body {
 /* ── Interact page ── */
 
 .interact-page {
-  background: linear-gradient(160deg, #060d19 0%, #0f1d35 50%, #0a1628 100%);
+  background-color: var(--navy);
+  background-image:
+    linear-gradient(var(--grid-line-minor) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--grid-line-minor) 0.5px, transparent 0.5px),
+    linear-gradient(var(--grid-line-major) 0.8px, transparent 0.8px),
+    linear-gradient(90deg, var(--grid-line-major) 0.8px, transparent 0.8px);
+  background-size:
+    12px 12px,
+    12px 12px,
+    60px 60px,
+    60px 60px;
 }
 
 .interact-card-body {
-  padding: 28px !important;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px !important;
+  background: var(--glass-4);
+  border: 1px solid var(--glass-8);
   backdrop-filter: blur(24px);
 }
 
+@media (min-width: 640px) {
+  .interact-card-body {
+    padding: 28px !important;
+  }
+}
+
 .interact-tabs-list {
-  height: 48px;
+  height: 44px;
   padding: 4px;
-  margin-bottom: 24px !important;
+  margin-bottom: 16px !important;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--glass-5) !important;
+  border: 1px solid var(--glass-6);
+}
+
+@media (min-width: 640px) {
+  .interact-tabs-list {
+    height: 48px;
+    margin-bottom: 24px !important;
+  }
 }
 
 .interact-tab {
@@ -121,7 +150,7 @@ body {
 
 .interact-tab[data-state="active"] {
   color: white !important;
-  background: rgba(255, 255, 255, 0.1) !important;
+  background: var(--glass-10) !important;
 }
 
 .interact-textarea {
@@ -131,8 +160,8 @@ body {
   color: white;
   padding: 16px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass-3);
+  border: 1px solid var(--glass-8);
 }
 
 .interact-textarea::placeholder {
@@ -165,7 +194,7 @@ body {
 
 .interact-btn-primary:disabled {
   opacity: 0.2;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-5);
 }
 
 .interact-btn-outline {
@@ -175,13 +204,13 @@ body {
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--glass-4);
+  border: 1px solid var(--glass-10);
   color: rgba(255, 255, 255, 0.6);
 }
 
 .interact-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--glass-8);
   color: white;
 }
 

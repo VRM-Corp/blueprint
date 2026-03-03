@@ -14,15 +14,20 @@ export default function AnimatedBackground() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const rootStyle = getComputedStyle(document.documentElement);
+    const bgColor = rootStyle.getPropertyValue("--navy").trim();
+    const minorLine = rootStyle.getPropertyValue("--grid-line-minor").trim();
+    const majorLine = rootStyle.getPropertyValue("--grid-line-major").trim();
+
     const draw = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       const { width, height } = canvas;
 
-      ctx.fillStyle = "#0a1628";
+      ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.strokeStyle = minorLine;
       ctx.lineWidth = 0.5;
       for (let x = 0; x < width; x += GRID_MINOR) {
         ctx.beginPath();
@@ -37,7 +42,7 @@ export default function AnimatedBackground() {
         ctx.stroke();
       }
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
+      ctx.strokeStyle = majorLine;
       ctx.lineWidth = 0.8;
       for (let x = 0; x < width; x += GRID_MAJOR) {
         ctx.beginPath();

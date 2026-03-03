@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Eraser, Send } from "lucide-react";
+import { Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SubmitButton from "@/components/SubmitButton";
 
 const COLORS = [
   { name: "White", value: "#ffffff" },
@@ -14,10 +15,10 @@ const COLORS = [
 
 type Props = {
   onSubmit: (dataUrl: string) => void;
-  submitting?: boolean;
+  isSubmitting?: boolean;
 };
 
-export default function DrawingCanvas({ onSubmit, submitting }: Props) {
+export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0].value);
@@ -103,15 +104,13 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
   }, [onSubmit, clear]);
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      {/* Canvas */}
+    <div className="flex flex-col gap-4 w-full flex-1 min-h-0">
       <div
-        className="relative w-full rounded-[14px] overflow-hidden"
+        className="relative w-full rounded-[14px] overflow-hidden flex-1 min-h-0"
         style={{
-          aspectRatio: "4/3",
           touchAction: "none",
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--glass-2)",
+          border: "1px solid var(--glass-8)",
         }}
       >
         <canvas
@@ -127,7 +126,6 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
         />
       </div>
 
-      {/* Tools row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           {COLORS.map((c) => (
@@ -155,10 +153,10 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
               className="flex items-center justify-center w-8 h-8 rounded-lg transition-all"
               style={{
                 background:
-                  lineWidth === w ? "rgba(255,255,255,0.10)" : "transparent",
+                  lineWidth === w ? "var(--glass-10)" : "transparent",
                 border:
                   lineWidth === w
-                    ? "1px solid rgba(255,255,255,0.15)"
+                    ? "1px solid var(--glass-15)"
                     : "1px solid transparent",
               }}
               onClick={() => setLineWidth(w)}
@@ -173,20 +171,17 @@ export default function DrawingCanvas({ onSubmit, submitting }: Props) {
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex gap-3">
         <Button onClick={clear} className="interact-btn-outline flex-1">
           <Eraser className="size-4" />
           Clear
         </Button>
-        <Button
+        <SubmitButton
           onClick={handleSubmit}
-          disabled={!hasContent || submitting}
-          className="interact-btn-primary flex-1"
-        >
-          {submitting ? "Sending..." : "Send"}
-          {!submitting && <Send className="size-4" />}
-        </Button>
+          disabled={!hasContent}
+          isSubmitting={isSubmitting}
+          className="flex-1"
+        />
       </div>
     </div>
   );

@@ -23,8 +23,14 @@ export default function MessageBubble({
   return (
     <DraggableBubble
       {...bubble}
-      className="bubble-glass p-3 rounded-2xl max-w-lg"
-      style={{ fontFamily: "var(--font-inter)" }}
+      className="p-3 rounded-2xl max-w-lg"
+      style={{
+        background: "var(--glass-10)",
+        backdropFilter: "blur(16px)",
+        border: "1px solid var(--glass-10)",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.3)",
+        fontFamily: "var(--font-inter)",
+      }}
     >
       {senderName && (
         <SenderInfo

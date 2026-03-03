@@ -105,19 +105,11 @@ body {
     60px 60px;
 }
 
-.interact-card-body,
-.bubble-glass {
+.interact-card-body {
+  padding: 20px !important;
   background: var(--glass-10);
   border: 1px solid var(--glass-10);
   backdrop-filter: blur(16px);
-}
-
-.interact-card-body {
-  padding: 20px !important;
-}
-
-.bubble-glass {
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
 }
 
 @media (min-width: 640px) {

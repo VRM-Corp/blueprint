@@ -17,7 +17,13 @@ export default function DrawingBubble({
   return (
     <DraggableBubble
       {...bubble}
-      className="bubble-glass p-3 rounded-2xl overflow-hidden"
+      className="p-3 rounded-2xl overflow-hidden"
+      style={{
+        background: "var(--glass-10)",
+        backdropFilter: "blur(16px)",
+        border: "1px solid var(--glass-10)",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.3)",
+      }}
     >
       {senderName && (
         <SenderInfo

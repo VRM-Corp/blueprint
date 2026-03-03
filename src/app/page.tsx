@@ -51,16 +51,16 @@ export default function ProjectionPage() {
   }, [messages, drawings]);
 
   const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
-  const queuedRef = useRef<Set<string>>(new Set());
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const seenRef = useRef<Set<string>>(new Set());
+  const pendingRef = useRef<string[]>([]);
 
   useEffect(() => {
     const newIds = allBubbles
       .map((b) => b.id)
-      .filter((id) => !queuedRef.current.has(id));
+      .filter((id) => !seenRef.current.has(id));
 
     if (newIds.length === 0) return;
-    newIds.forEach((id) => queuedRef.current.add(id));
+    newIds.forEach((id) => seenRef.current.add(id));
 
     if (newIds.length <= 2) {
       setVisibleIds((prev) => {
@@ -71,21 +71,18 @@ export default function ProjectionPage() {
       return;
     }
 
-    let i = 0;
-    const flush = () => {
-      if (i >= newIds.length) return;
-      setVisibleIds((prev) => new Set([...prev, newIds[i]]));
-      i++;
-      if (i < newIds.length) {
-        timerRef.current = setTimeout(flush, 80);
-      }
-    };
-    flush();
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
+    pendingRef.current.push(...newIds);
   }, [allBubbles]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const next = pendingRef.current.shift();
+      if (next) {
+        setVisibleIds((prev) => new Set([...prev, next]));
+      }
+    }, 80);
+    return () => clearInterval(interval);
+  }, []);
 
   const contactByName = useMemo(() => {
     const map: Record<string, { icon?: string; handle?: string; avatar?: string }> = {};

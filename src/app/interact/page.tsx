@@ -1,47 +1,100 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { MessageSquare, Pencil } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { MessageSquare, Pencil, User, Newspaper, Users } from "lucide-react";
+import Link from "next/link";
 import DrawingCanvas from "@/components/DrawingCanvas";
 import LogoStrip from "@/components/LogoStrip";
 import SubmitButton from "@/components/SubmitButton";
+import IdentityForm from "@/components/IdentityForm";
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmit } from "@/hooks/useSubmit";
+import { getIdentity, type UserIdentity } from "@/lib/identity";
 import { EVENT_CONFIG } from "@/lib/config";
 
 export default function InteractPage() {
+  const [identity, setIdentity] = useState<UserIdentity | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState("");
   const { isSubmitting, submit } = useSubmit();
 
+  useEffect(() => {
+    setIdentity(getIdentity());
+    setLoaded(true);
+  }, []);
+
   const sendMessage = useCallback(async () => {
-    if (!message.trim()) return;
-    await submit("messages", { text: message.trim() }, {
+    if (!message.trim() || !identity) return;
+    await submit("messages", { text: message.trim(), sender_name: identity.name }, {
       successMessage: "Your message is live!",
       onSuccess: () => setMessage(""),
     });
-  }, [message, submit]);
+  }, [message, identity, submit]);
 
   const sendDrawing = useCallback(
     async (dataUrl: string) => {
-      await submit("drawings", { image_data: dataUrl }, {
+      if (!identity) return;
+      await submit("drawings", { image_data: dataUrl, sender_name: identity.name }, {
         successMessage: "Your drawing is live!",
       });
     },
-    [submit]
+    [identity, submit]
   );
+
+  if (!loaded) return null;
+
+  if (!identity) {
+    return <IdentityForm onComplete={setIdentity} />;
+  }
+
+  if (editing) {
+    return (
+      <IdentityForm
+        existing={identity}
+        onComplete={(updated) => {
+          setIdentity(updated);
+          setEditing(false);
+        }}
+        onCancel={() => setEditing(false)}
+      />
+    );
+  }
 
   return (
     <div className="interact-page h-[100dvh] flex flex-col items-center px-4">
       <Toaster position="bottom-center" />
 
+      <div className="fixed top-4 left-4 right-4 flex justify-between z-10 pointer-events-none">
+        <Link href="/feed" className="nav-icon pointer-events-auto">
+          <Newspaper className="size-[18px]" />
+        </Link>
+        <Link href="/members" className="nav-icon pointer-events-auto">
+          <Users className="size-[18px]" />
+        </Link>
+      </div>
+
       <h1
-        className="text-4xl sm:text-5xl tracking-tight text-white pt-10 sm:pt-20 pb-4 sm:pb-6 text-center flex-shrink-0"
+        className="text-4xl sm:text-5xl tracking-tight text-white pt-10 sm:pt-20 pb-1 text-center flex-shrink-0"
         style={{ fontFamily: "Kabond, serif" }}
       >
         {EVENT_CONFIG.title}
       </h1>
+      <button
+        onClick={() => setEditing(true)}
+        className="text-white/30 text-sm pb-4 sm:pb-6 flex items-center gap-2 hover:text-white/50 transition-colors cursor-pointer"
+      >
+        {identity.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={identity.avatarUrl} alt="" className="size-5 rounded-full object-cover" />
+        ) : (
+          <User className="size-3.5" />
+        )}
+        {identity.name}
+        <Pencil className="size-3" />
+      </button>
 
       <div className="interact-card w-full max-w-[430px] flex-1 min-h-0 flex flex-col">
         <div className="interact-card-body rounded-2xl flex-1 min-h-0 flex flex-col">

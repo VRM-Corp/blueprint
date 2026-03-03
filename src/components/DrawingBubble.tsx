@@ -1,32 +1,38 @@
 "use client";
 
 import DraggableBubble from "./DraggableBubble";
+import SenderInfo from "./SenderInfo";
+import type { BubbleProps } from "@/lib/types";
 
-type Props = {
-  imageData: string;
-  x: number;
-  y: number;
-  rotation: number;
-  onDragEnd: (x: number, y: number) => void;
-  onDelete: () => void;
-};
+type Props = BubbleProps & { imageData: string };
 
-export default function DrawingBubble({ imageData, ...bubble }: Props) {
+export default function DrawingBubble({
+  imageData,
+  senderName,
+  avatarUrl,
+  contactIcon,
+  contactHandle,
+  ...bubble
+}: Props) {
   return (
     <DraggableBubble
       {...bubble}
-      className="rounded-xl overflow-hidden"
-      style={{
-        background: "var(--glass-4)",
-        border: "1px solid var(--glass-8)",
-        boxShadow: "0 8px 40px rgba(0, 0, 0, 0.4)",
-      }}
+      className="bubble-glass p-3 rounded-2xl overflow-hidden"
     >
+      {senderName && (
+        <SenderInfo
+          name={senderName}
+          avatarUrl={avatarUrl}
+          contactIcon={contactIcon}
+          contactHandle={contactHandle}
+          className="px-3 pt-2.5 pb-1"
+        />
+      )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageData}
         alt=""
-        className="w-48 h-48 object-contain select-none"
+        className="w-48 h-48 object-contain select-none rounded-xl"
         draggable={false}
       />
     </DraggableBubble>

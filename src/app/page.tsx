@@ -12,7 +12,7 @@ import { usePhase } from "@/hooks/usePhase";
 import { useWindowSize } from "@/hooks/useWindowSize";
 import { useBubblePositions } from "@/hooks/useBubblePositions";
 import { useProjectionData } from "@/hooks/useRealtimeData";
-import { EVENT_CONFIG } from "@/lib/config";
+import { EVENT_CONFIG, getContactType } from "@/lib/config";
 
 const { projection: P, assets } = EVENT_CONFIG;
 
@@ -29,10 +29,24 @@ export default function ProjectionPage() {
   const { w, h } = useWindowSize();
   const { ensurePosition, handleDragEnd, removePosition } =
     useBubblePositions();
-  const { messages, drawings, deleteMessage, deleteDrawing } =
+  const { messages, drawings, participants, deleteMessage, deleteDrawing } =
     useProjectionData();
 
   const isPre = phase === "pre-event";
+
+  const contactByName = useMemo(() => {
+    const map: Record<string, { icon?: string; handle?: string; avatar?: string }> = {};
+    for (const p of participants) {
+      const icon = getContactType(p.contact_type)?.icon;
+      const existing = map[p.name];
+      map[p.name] = {
+        icon: icon || existing?.icon,
+        handle: p.contact || existing?.handle,
+        avatar: p.avatar_url || existing?.avatar,
+      };
+    }
+    return map;
+  }, [participants]);
 
   const qrPos = useMemo(() => {
     const titleBottom = h * P.titleTopPercent + w * 0.12 * 0.9 + 20;
@@ -59,6 +73,10 @@ export default function ProjectionPage() {
                 <MessageBubble
                   key={m.id}
                   text={m.text}
+                  senderName={m.sender_name}
+                  avatarUrl={m.sender_name ? contactByName[m.sender_name]?.avatar : undefined}
+                  contactIcon={m.sender_name ? contactByName[m.sender_name]?.icon : undefined}
+                  contactHandle={m.sender_name ? contactByName[m.sender_name]?.handle : undefined}
                   x={pos.x}
                   y={pos.y}
                   rotation={pos.rotation}
@@ -76,6 +94,10 @@ export default function ProjectionPage() {
                 <DrawingBubble
                   key={d.id}
                   imageData={d.image_data}
+                  senderName={d.sender_name}
+                  avatarUrl={d.sender_name ? contactByName[d.sender_name]?.avatar : undefined}
+                  contactIcon={d.sender_name ? contactByName[d.sender_name]?.icon : undefined}
+                  contactHandle={d.sender_name ? contactByName[d.sender_name]?.handle : undefined}
                   x={pos.x}
                   y={pos.y}
                   rotation={pos.rotation}
@@ -90,6 +112,7 @@ export default function ProjectionPage() {
           </AnimatePresence>
         </div>
       )}
+
 
       <motion.div
         className="fixed flex flex-col"

@@ -20,11 +20,22 @@ export const supabase = createSupabaseClient();
 export type Message = {
   id: string;
   text: string;
+  sender_name?: string;
   created_at: string;
 };
 
 export type Drawing = {
   id: string;
   image_data: string;
+  sender_name?: string;
+  created_at: string;
+};
+
+export type Participant = {
+  id: string;
+  name: string;
+  contact?: string;
+  contact_type?: string;
+  avatar_url?: string;
   created_at: string;
 };

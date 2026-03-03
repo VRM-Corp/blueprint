@@ -1,3 +1,17 @@
+export const CONTACT_TYPES = [
+  { id: "instagram", label: "Instagram", icon: "/assets/blueprintappicons/instagram.png", placeholder: "@username" },
+  { id: "twitter",   label: "Twitter / X", icon: "/assets/blueprintappicons/x.svg", placeholder: "@handle" },
+  { id: "linkedin",  label: "LinkedIn", icon: "/assets/blueprintappicons/linkedin.png", placeholder: "linkedin.com/in/..." },
+  { id: "email",     label: "Email", icon: "/assets/blueprintappicons/gmail.svg", placeholder: "your@email.com" },
+] as const;
+
+export type ContactTypeId = (typeof CONTACT_TYPES)[number]["id"];
+
+export function getContactType(id: string | undefined) {
+  if (!id) return undefined;
+  return CONTACT_TYPES.find((t) => t.id === id);
+}
+
 export const EVENT_CONFIG = {
   title: "Blueprint",
   venue: "VROOM",

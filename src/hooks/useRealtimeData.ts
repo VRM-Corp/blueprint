@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { supabase, type Message, type Drawing } from "@/lib/supabase";
+import { supabase, type Message, type Drawing, type Participant } from "@/lib/supabase";
 
-function useRealtimeTable<T extends { id: string }>(table: string) {
+export function useRealtimeTable<T extends { id: string }>(table: string) {
   const [items, setItems] = useState<T[]>([]);
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
@@ -38,6 +38,16 @@ function useRealtimeTable<T extends { id: string }>(table: string) {
             if (prev.some((p) => p.id === item.id)) return prev;
             return [...prev, item];
           });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table },
+        (payload) => {
+          const updated = payload.new as T;
+          setItems((prev) =>
+            prev.map((item) => (item.id === updated.id ? updated : item))
+          );
         }
       )
       .subscribe();
@@ -80,12 +90,17 @@ export function useProjectionData() {
     error: drawingsError,
     removeItem: deleteDrawing,
   } = useRealtimeTable<Drawing>("drawings");
+  const {
+    items: participants,
+    error: participantsError,
+  } = useRealtimeTable<Participant>("participants");
 
   return {
     messages,
     drawings,
+    participants,
     deleteMessage,
     deleteDrawing,
-    error: messagesError || drawingsError,
+    error: messagesError || drawingsError || participantsError,
   };
 }

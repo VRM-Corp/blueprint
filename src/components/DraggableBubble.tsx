@@ -61,7 +61,7 @@ export default function DraggableBubble({
         const newYPx = (y / 100) * window.innerHeight + dragY.get();
         onDragEnd(newXPx, newYPx);
       }}
-      whileDrag={{ scale: 1.05, zIndex: 100 }}
+      whileDrag={{ scale: 1.05, zIndex: 9999 }}
     >
       {children}
     </motion.div>

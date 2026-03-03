@@ -13,6 +13,7 @@ import { useWindowSize } from "@/hooks/useWindowSize";
 import { useBubblePositions } from "@/hooks/useBubblePositions";
 import { useProjectionData } from "@/hooks/useRealtimeData";
 import { EVENT_CONFIG, getContactType } from "@/lib/config";
+import type { Message, Drawing } from "@/lib/supabase";
 
 const { projection: P, assets } = EVENT_CONFIG;
 
@@ -33,6 +34,15 @@ export default function ProjectionPage() {
     useProjectionData();
 
   const isPre = phase === "pre-event";
+
+  const allBubbles = useMemo(() => {
+    const items: Array<{ type: "message" | "drawing"; id: string; sender_name?: string; data: Message | Drawing }> = [
+      ...messages.map((m) => ({ type: "message" as const, id: m.id, sender_name: m.sender_name, data: m })),
+      ...drawings.map((d) => ({ type: "drawing" as const, id: d.id, sender_name: d.sender_name, data: d })),
+    ];
+    items.sort((a, b) => new Date(a.data.created_at).getTime() - new Date(b.data.created_at).getTime());
+    return items;
+  }, [messages, drawings]);
 
   const contactByName = useMemo(() => {
     const map: Record<string, { icon?: string; handle?: string; avatar?: string }> = {};
@@ -67,44 +77,44 @@ export default function ProjectionPage() {
       {!isPre && (
         <div className="fixed inset-0" style={{ zIndex: 2 }}>
           <AnimatePresence>
-            {messages.map((m) => {
-              const pos = ensurePosition(m.id);
-              return (
-                <MessageBubble
-                  key={m.id}
-                  text={m.text}
-                  senderName={m.sender_name}
-                  avatarUrl={m.sender_name ? contactByName[m.sender_name]?.avatar : undefined}
-                  contactIcon={m.sender_name ? contactByName[m.sender_name]?.icon : undefined}
-                  contactHandle={m.sender_name ? contactByName[m.sender_name]?.handle : undefined}
-                  x={pos.x}
-                  y={pos.y}
-                  rotation={pos.rotation}
-                  onDragEnd={(px, py) => handleDragEnd(m.id, px, py)}
-                  onDelete={() => {
-                    removePosition(m.id);
-                    deleteMessage(m.id);
-                  }}
-                />
-              );
-            })}
-            {drawings.map((d) => {
-              const pos = ensurePosition(d.id);
+            {allBubbles.map((item, index) => {
+              const pos = ensurePosition(item.id);
+              const contact = item.sender_name ? contactByName[item.sender_name] : undefined;
+              const shared = {
+                senderName: item.sender_name,
+                avatarUrl: contact?.avatar,
+                contactIcon: contact?.icon,
+                contactHandle: contact?.handle,
+                x: pos.x,
+                y: pos.y,
+                rotation: pos.rotation,
+                zIndex: index + 1,
+              };
+
+              if (item.type === "message") {
+                return (
+                  <MessageBubble
+                    key={item.id}
+                    text={(item.data as Message).text}
+                    {...shared}
+                    onDragEnd={(px, py) => handleDragEnd(item.id, px, py)}
+                    onDelete={() => {
+                      removePosition(item.id);
+                      deleteMessage(item.id);
+                    }}
+                  />
+                );
+              }
+
               return (
                 <DrawingBubble
-                  key={d.id}
-                  imageData={d.image_data}
-                  senderName={d.sender_name}
-                  avatarUrl={d.sender_name ? contactByName[d.sender_name]?.avatar : undefined}
-                  contactIcon={d.sender_name ? contactByName[d.sender_name]?.icon : undefined}
-                  contactHandle={d.sender_name ? contactByName[d.sender_name]?.handle : undefined}
-                  x={pos.x}
-                  y={pos.y}
-                  rotation={pos.rotation}
-                  onDragEnd={(px, py) => handleDragEnd(d.id, px, py)}
+                  key={item.id}
+                  imageData={(item.data as Drawing).image_data}
+                  {...shared}
+                  onDragEnd={(px, py) => handleDragEnd(item.id, px, py)}
                   onDelete={() => {
-                    removePosition(d.id);
-                    deleteDrawing(d.id);
+                    removePosition(item.id);
+                    deleteDrawing(item.id);
                   }}
                 />
               );

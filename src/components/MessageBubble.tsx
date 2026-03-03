@@ -18,11 +18,13 @@ export default function MessageBubble({
   avatarUrl,
   contactIcon,
   contactHandle,
+  zIndex,
   ...bubble
 }: Props) {
   return (
     <DraggableBubble
       {...bubble}
+      zIndex={zIndex}
       className="p-3 rounded-2xl max-w-lg"
       style={{
         background: "var(--glass-10)",

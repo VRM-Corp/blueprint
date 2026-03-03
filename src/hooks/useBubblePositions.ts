@@ -4,19 +4,32 @@ import { useCallback, useRef } from "react";
 
 type Pos = { x: number; y: number; rotation: number };
 
-const MIN_DIST = 12;
+const MIN_DIST = 16;
+
+const RESERVED_ZONES = [
+  { xMin: 0, xMax: 22, yMin: 0, yMax: 14 },
+  { xMin: 72, xMax: 100, yMin: 78, yMax: 100 },
+  { xMin: 0, xMax: 22, yMin: 82, yMax: 100 },
+];
+
+function isReserved(x: number, y: number): boolean {
+  return RESERVED_ZONES.some(
+    (z) => x >= z.xMin && x <= z.xMax && y >= z.yMin && y <= z.yMax,
+  );
+}
 
 function spreadPosition(existing: Map<string, Pos>): { x: number; y: number } {
   const positions = Array.from(existing.values());
-  for (let attempt = 0; attempt < 30; attempt++) {
-    const x = 3 + Math.random() * 70;
-    const y = 5 + Math.random() * 70;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const x = 3 + Math.random() * 72;
+    const y = 5 + Math.random() * 72;
+    if (isReserved(x, y)) continue;
     const tooClose = positions.some(
-      (p) => Math.abs(p.x - x) < MIN_DIST && Math.abs(p.y - y) < MIN_DIST
+      (p) => Math.abs(p.x - x) < MIN_DIST && Math.abs(p.y - y) < MIN_DIST,
     );
     if (!tooClose) return { x, y };
   }
-  return { x: 3 + Math.random() * 70, y: 5 + Math.random() * 70 };
+  return { x: 3 + Math.random() * 72, y: 5 + Math.random() * 72 };
 }
 
 export function useBubblePositions() {

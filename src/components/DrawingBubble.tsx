@@ -12,11 +12,13 @@ export default function DrawingBubble({
   avatarUrl,
   contactIcon,
   contactHandle,
+  zIndex,
   ...bubble
 }: Props) {
   return (
     <DraggableBubble
       {...bubble}
+      zIndex={zIndex}
       className="p-3 rounded-2xl overflow-hidden"
       style={{
         background: "var(--glass-10)",

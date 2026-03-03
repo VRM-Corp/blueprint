@@ -8,6 +8,7 @@ type Props = {
   x: number;
   y: number;
   rotation: number;
+  zIndex?: number;
   onDragEnd: (x: number, y: number) => void;
   onDelete: () => void;
   className?: string;
@@ -19,6 +20,7 @@ export default function DraggableBubble({
   x,
   y,
   rotation,
+  zIndex,
   onDragEnd,
   onDelete,
   className = "",
@@ -43,7 +45,7 @@ export default function DraggableBubble({
         e.preventDefault();
         onDelete();
       }}
-      style={{ left: `${x}%`, top: `${y}%`, ...style, x: dragX, y: dragY }}
+      style={{ left: `${x}%`, top: `${y}%`, zIndex, ...style, x: dragX, y: dragY }}
       initial={{ opacity: 0, scale: 0.5 }}
       animate={{ opacity: 1, scale: 1, rotate: rotation }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.3 } }}

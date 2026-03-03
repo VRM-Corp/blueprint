@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import FloatingElements from "@/components/FloatingElements";
@@ -34,6 +34,8 @@ export default function ProjectionPage() {
     useProjectionData();
 
   const isPre = phase === "pre-event";
+  const zCounterRef = useRef(0);
+  const [zOverrides, setZOverrides] = useState<Record<string, number>>({});
 
   const allBubbles = useMemo(() => {
     const items: Array<{ type: "message" | "drawing"; id: string; sender_name?: string; data: Message | Drawing }> = [
@@ -88,7 +90,7 @@ export default function ProjectionPage() {
                 x: pos.x,
                 y: pos.y,
                 rotation: pos.rotation,
-                zIndex: index + 1,
+                zIndex: zOverrides[item.id] ?? (index + 1),
               };
 
               if (item.type === "message") {
@@ -97,7 +99,11 @@ export default function ProjectionPage() {
                     key={item.id}
                     text={(item.data as Message).text}
                     {...shared}
-                    onDragEnd={(px, py) => handleDragEnd(item.id, px, py)}
+                    onDragEnd={(px, py) => {
+                      handleDragEnd(item.id, px, py);
+                      zCounterRef.current += 1;
+                      setZOverrides((prev) => ({ ...prev, [item.id]: 1000 + zCounterRef.current }));
+                    }}
                     onDelete={() => {
                       removePosition(item.id);
                       deleteMessage(item.id);
@@ -111,7 +117,11 @@ export default function ProjectionPage() {
                   key={item.id}
                   imageData={(item.data as Drawing).image_data}
                   {...shared}
-                  onDragEnd={(px, py) => handleDragEnd(item.id, px, py)}
+                  onDragEnd={(px, py) => {
+                    handleDragEnd(item.id, px, py);
+                    zCounterRef.current += 1;
+                    setZOverrides((prev) => ({ ...prev, [item.id]: 1000 + zCounterRef.current }));
+                  }}
                   onDelete={() => {
                     removePosition(item.id);
                     deleteDrawing(item.id);

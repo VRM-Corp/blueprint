@@ -152,7 +152,7 @@ export default function ProjectionPage() {
       preTop: (titleBottom + logosTop) / 2 - QR_FULL / 2,
       preLeft: w / 2 - QR_FULL / 2,
       duringTop: h - P.cornerInset - QR_FULL * P.qrDuringScale,
-      duringLeft: w - P.cornerInset - QR_FULL * P.qrDuringScale,
+      duringLeft: w / 2 - (QR_FULL * P.qrDuringScale) / 2,
     };
   }, [w, h]);
 
@@ -259,12 +259,13 @@ export default function ProjectionPage() {
 
       <motion.div
         className="fixed"
-        style={{ zIndex: 3, transformOrigin: "top left" }}
+        style={{ zIndex: 3, transformOrigin: "top right" }}
         initial={false}
         animate={{
           opacity: 1,
-          top: isPre ? qrPos.preTop : qrPos.duringTop,
-          left: isPre ? qrPos.preLeft : qrPos.duringLeft,
+          top: isPre ? qrPos.preTop : 32,
+          left: isPre ? qrPos.preLeft : w - 40,
+          x: isPre ? "0%" : "-100%",
           scale: isPre ? 1 : P.qrDuringScale,
         }}
         transition={{ duration: P.transitionDuration, ease: "easeInOut" }}
@@ -278,9 +279,10 @@ export default function ProjectionPage() {
         initial={false}
         animate={{
           opacity: 1,
-          top: h - P.logoPadding,
-          left: isPre ? w / 2 : 40,
-          x: isPre ? "-50%" : "0%",
+          top: isPre ? h - P.logoPadding : h - P.cornerInset,
+          left: w / 2,
+          x: "-50%",
+          y: isPre ? "0%" : "-100%",
         }}
         transition={{ duration: P.transitionDuration, ease: "easeInOut" }}
       >

@@ -50,39 +50,20 @@ export default function ProjectionPage() {
     return items;
   }, [messages, drawings]);
 
-  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
-  const seenRef = useRef<Set<string>>(new Set());
-  const pendingRef = useRef<string[]>([]);
+  const staggerRef = useRef<Record<string, number>>({});
+  const initialDoneRef = useRef(false);
 
-  useEffect(() => {
-    const newIds = allBubbles
-      .map((b) => b.id)
-      .filter((id) => !seenRef.current.has(id));
-
-    if (newIds.length === 0) return;
-    newIds.forEach((id) => seenRef.current.add(id));
-
-    if (newIds.length <= 2) {
-      setVisibleIds((prev) => {
-        const next = new Set(prev);
-        newIds.forEach((id) => next.add(id));
-        return next;
-      });
-      return;
+  allBubbles.forEach((item, index) => {
+    if (!(item.id in staggerRef.current)) {
+      staggerRef.current[item.id] = initialDoneRef.current ? 0 : index;
     }
-
-    pendingRef.current.push(...newIds);
-  }, [allBubbles]);
+  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const next = pendingRef.current.shift();
-      if (next) {
-        setVisibleIds((prev) => new Set([...prev, next]));
-      }
-    }, 80);
-    return () => clearInterval(interval);
-  }, []);
+    if (allBubbles.length > 0) {
+      initialDoneRef.current = true;
+    }
+  }, [allBubbles]);
 
   const contactByName = useMemo(() => {
     const map: Record<string, { icon?: string; handle?: string; avatar?: string }> = {};
@@ -115,53 +96,36 @@ export default function ProjectionPage() {
 
       {!isPre && (
         <div className="fixed inset-0" style={{ zIndex: 2 }}>
-          <AnimatePresence>
-            {allBubbles.filter((b) => visibleIds.has(b.id)).map((item) => {
-              if (!(item.id in zMapRef.current)) {
-                zCounterRef.current += 1;
-                zMapRef.current[item.id] = zCounterRef.current;
-              }
-              const pos = ensurePosition(item.id);
-              const contact = item.sender_name ? contactByName[item.sender_name] : undefined;
-              const shared = {
-                senderName: item.sender_name,
-                avatarUrl: contact?.avatar,
-                contactIcon: contact?.icon,
-                contactHandle: contact?.handle,
-                x: pos.x,
-                y: pos.y,
-                rotation: pos.rotation,
-                zIndex: zMapRef.current[item.id],
-              };
+          {allBubbles.map((item) => {
+            if (!(item.id in zMapRef.current)) {
+              zCounterRef.current += 1;
+              zMapRef.current[item.id] = zCounterRef.current;
+            }
+            const pos = ensurePosition(item.id);
+            const contact = item.sender_name ? contactByName[item.sender_name] : undefined;
+            const shared = {
+              senderName: item.sender_name,
+              avatarUrl: contact?.avatar,
+              contactIcon: contact?.icon,
+              contactHandle: contact?.handle,
+              x: pos.x,
+              y: pos.y,
+              rotation: pos.rotation,
+              zIndex: zMapRef.current[item.id],
+              staggerIndex: staggerRef.current[item.id] ?? 0,
+            };
 
-              const bringToFront = (id: string) => {
-                zCounterRef.current += 1;
-                zMapRef.current[id] = zCounterRef.current;
-                setZTick((n) => n + 1);
-              };
+            const bringToFront = (id: string) => {
+              zCounterRef.current += 1;
+              zMapRef.current[id] = zCounterRef.current;
+              setZTick((n) => n + 1);
+            };
 
-              if (item.type === "message") {
-                return (
-                  <MessageBubble
-                    key={item.id}
-                    text={(item.data as Message).text}
-                    {...shared}
-                    onDragEnd={(px, py) => {
-                      handleDragEnd(item.id, px, py);
-                      bringToFront(item.id);
-                    }}
-                    onDelete={() => {
-                      removePosition(item.id);
-                      deleteMessage(item.id);
-                    }}
-                  />
-                );
-              }
-
+            if (item.type === "message") {
               return (
-                <DrawingBubble
+                <MessageBubble
                   key={item.id}
-                  imageData={(item.data as Drawing).image_data}
+                  text={(item.data as Message).text}
                   {...shared}
                   onDragEnd={(px, py) => {
                     handleDragEnd(item.id, px, py);
@@ -169,12 +133,28 @@ export default function ProjectionPage() {
                   }}
                   onDelete={() => {
                     removePosition(item.id);
-                    deleteDrawing(item.id);
+                    deleteMessage(item.id);
                   }}
                 />
               );
-            })}
-          </AnimatePresence>
+            }
+
+            return (
+              <DrawingBubble
+                key={item.id}
+                imageData={(item.data as Drawing).image_data}
+                {...shared}
+                onDragEnd={(px, py) => {
+                  handleDragEnd(item.id, px, py);
+                  bringToFront(item.id);
+                }}
+                onDelete={() => {
+                  removePosition(item.id);
+                  deleteDrawing(item.id);
+                }}
+              />
+            );
+          })}
         </div>
       )}
 

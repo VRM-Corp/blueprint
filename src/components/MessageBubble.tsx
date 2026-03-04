@@ -1,15 +1,38 @@
 "use client";
 
+import { useRef, useLayoutEffect, useState } from "react";
 import DraggableBubble from "./DraggableBubble";
 import SenderInfo from "./SenderInfo";
 import type { BubbleProps } from "@/lib/types";
 
 type Props = BubbleProps & { text: string };
 
-function getFontSize(length: number) {
-  if (length > 80) return "1rem";
-  if (length > 40) return "1.25rem";
-  return "1.5rem";
+const NOTE_SIZE = 140;
+const MAX_FONT = 28;
+const MIN_FONT = 8;
+
+function useAutoFitFont(text: string) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const [fontSize, setFontSize] = useState(MAX_FONT);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const el = textRef.current;
+    if (!container || !el) return;
+
+    let size = MAX_FONT;
+    el.style.fontSize = `${size}px`;
+
+    while (size > MIN_FONT && el.scrollHeight > container.clientHeight) {
+      size -= 1;
+      el.style.fontSize = `${size}px`;
+    }
+
+    setFontSize(size);
+  }, [text]);
+
+  return { containerRef, textRef, fontSize };
 }
 
 export default function MessageBubble({
@@ -21,34 +44,39 @@ export default function MessageBubble({
   zIndex,
   ...bubble
 }: Props) {
+  const { containerRef, textRef, fontSize } = useAutoFitFont(text);
+
   return (
     <DraggableBubble
       {...bubble}
       zIndex={zIndex}
-      className="p-3 rounded-2xl max-w-lg"
+      className="flex flex-col bubble-sticky"
       style={{
-        background: "var(--glass-10)",
-        backdropFilter: "blur(16px)",
-        border: "1px solid var(--glass-10)",
-        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.3)",
         fontFamily: "var(--font-inter)",
+        width: NOTE_SIZE,
+        height: NOTE_SIZE,
+        padding: 8,
       }}
     >
+      <div ref={containerRef} className="flex-1 min-h-0 overflow-hidden">
+        <p
+          ref={textRef}
+          className="text-neutral-800 font-medium leading-snug select-none break-words"
+          style={{ fontSize }}
+        >
+          {text}
+        </p>
+      </div>
       {senderName && (
         <SenderInfo
           name={senderName}
           avatarUrl={avatarUrl}
           contactIcon={contactIcon}
           contactHandle={contactHandle}
-          className="mb-2"
+          className="mt-auto pt-1 shrink-0"
+          dark
         />
       )}
-      <p
-        className="text-white font-light tracking-wide leading-relaxed select-none"
-        style={{ fontSize: getFontSize(text.length) }}
-      >
-        {text}
-      </p>
     </DraggableBubble>
   );
 }

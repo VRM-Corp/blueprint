@@ -7,10 +7,18 @@ import SubmitButton from "@/components/SubmitButton";
 
 const COLORS = [
   { name: "White", value: "#ffffff" },
+  { name: "Black", value: "#111111" },
   { name: "Blue", value: "#4a7fff" },
   { name: "Cyan", value: "#00d4ff" },
   { name: "Pink", value: "#ff6baa" },
   { name: "Yellow", value: "#ffd93d" },
+];
+
+const BG_COLORS = [
+  { name: "Dark", value: "transparent" },
+  { name: "White", value: "#ffffff" },
+  { name: "Yellow", value: "#f5e6a3" },
+  { name: "Black", value: "#111111" },
 ];
 
 type Props = {
@@ -22,6 +30,7 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0].value);
+  const [bgColor, setBgColor] = useState(BG_COLORS[0].value);
   const [lineWidth, setLineWidth] = useState(3);
   const [hasContent, setHasContent] = useState(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
@@ -98,10 +107,20 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
 
   const handleSubmit = useCallback(() => {
     const canvas = canvasRef.current!;
-    const dataUrl = canvas.toDataURL("image/png");
-    onSubmit(dataUrl);
+    if (bgColor === "transparent") {
+      onSubmit(canvas.toDataURL("image/png"));
+    } else {
+      const tmp = document.createElement("canvas");
+      tmp.width = canvas.width;
+      tmp.height = canvas.height;
+      const ctx = tmp.getContext("2d")!;
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, tmp.width, tmp.height);
+      ctx.drawImage(canvas, 0, 0);
+      onSubmit(tmp.toDataURL("image/png"));
+    }
     clear();
-  }, [onSubmit, clear]);
+  }, [onSubmit, clear, bgColor]);
 
   return (
     <div className="flex flex-col gap-4 w-full flex-1 min-h-0">

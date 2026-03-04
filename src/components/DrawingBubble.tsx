@@ -19,32 +19,29 @@ export default function DrawingBubble({
     <DraggableBubble
       {...bubble}
       zIndex={zIndex}
-      className="p-3 rounded-2xl overflow-hidden"
-      style={{
-        background: "var(--glass-10)",
-        backdropFilter: "blur(16px)",
-        border: "1px solid var(--glass-10)",
-        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.3)",
-      }}
+      className="pt-2 px-2 pb-5 overflow-hidden bubble-polaroid"
     >
+      <div className="bubble-content p-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageData}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="w-48 h-48 object-contain select-none"
+          draggable={false}
+        />
+      </div>
       {senderName && (
         <SenderInfo
           name={senderName}
           avatarUrl={avatarUrl}
           contactIcon={contactIcon}
           contactHandle={contactHandle}
-          className="mb-2"
+          className="mt-2 shrink-0"
+          dark
         />
       )}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={imageData}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        className="w-48 h-48 object-contain select-none rounded-xl"
-        draggable={false}
-      />
     </DraggableBubble>
   );
 }

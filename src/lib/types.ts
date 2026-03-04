@@ -22,6 +22,7 @@ export type BubbleProps = {
   y: number;
   rotation: number;
   zIndex?: number;
+  staggerIndex?: number;
   onDragEnd: (x: number, y: number) => void;
   onDelete: () => void;
 };

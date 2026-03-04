@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { MessageSquare, Pencil, User, Newspaper, Users } from "lucide-react";
 import Link from "next/link";
 import DrawingCanvas from "@/components/DrawingCanvas";
@@ -13,6 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useSubmit } from "@/hooks/useSubmit";
 import { getIdentity, type UserIdentity } from "@/lib/identity";
 import { EVENT_CONFIG } from "@/lib/config";
+
+function getStickyFontSize(length: number) {
+  if (length > 80) return "1rem";
+  if (length > 40) return "1.2rem";
+  if (length > 20) return "1.4rem";
+  return "1.6rem";
+}
 
 export default function InteractPage() {
   const [identity, setIdentity] = useState<UserIdentity | null>(null);
@@ -116,33 +123,36 @@ export default function InteractPage() {
                 forceMount
                 className="mt-0 [grid-area:1/1] data-[state=inactive]:invisible min-h-0"
               >
-                <div className="flex flex-col gap-4 sm:gap-6 h-full">
-                  <p className="text-white/50 text-sm flex-shrink-0">
-                    Your message will float across the projection screen.
+                <div className="flex flex-col items-center h-full">
+                  <p className="text-white/50 text-sm flex-shrink-0 self-start">
+                    Write a sticky note for the board.
                   </p>
 
-                  <div className="relative flex-1 min-h-0">
-                    <Textarea
-                      value={message}
-                      onChange={(e) =>
-                        setMessage(
-                          e.target.value.slice(0, EVENT_CONFIG.messageMaxLength)
-                        )
-                      }
-                      placeholder="Type your message..."
-                      maxLength={EVENT_CONFIG.messageMaxLength}
-                      className="interact-textarea h-full"
-                    />
-                    <span className="absolute bottom-3 right-3 text-white/25 text-xs tabular-nums pointer-events-none">
-                      {message.length}/{EVENT_CONFIG.messageMaxLength}
-                    </span>
+                  <div className="flex-1 min-h-0 flex items-center justify-center w-full">
+                    <div className="relative w-full aspect-square max-h-full bubble-sticky">
+                      <Textarea
+                        value={message}
+                        onChange={(e) =>
+                          setMessage(
+                            e.target.value.slice(0, EVENT_CONFIG.messageMaxLength)
+                          )
+                        }
+                        placeholder="Write here..."
+                        maxLength={EVENT_CONFIG.messageMaxLength}
+                        className="sticky-note-input w-full h-full"
+                        style={{ fontSize: getStickyFontSize(message.length) }}
+                      />
+                      <span className="absolute bottom-2 right-2 text-neutral-400 text-[10px] tabular-nums pointer-events-none">
+                        {message.length}/{EVENT_CONFIG.messageMaxLength}
+                      </span>
+                    </div>
                   </div>
 
                   <SubmitButton
                     onClick={sendMessage}
                     disabled={!message.trim()}
                     isSubmitting={isSubmitting}
-                    className="w-full flex-shrink-0"
+                    className="w-full flex-shrink-0 mt-4"
                   />
                 </div>
               </TabsContent>

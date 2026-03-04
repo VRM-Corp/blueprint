@@ -12,6 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useSubmit } from "@/hooks/useSubmit";
 import { getIdentity, type UserIdentity } from "@/lib/identity";
+import { uploadDrawingImage } from "@/lib/supabase";
 import { EVENT_CONFIG } from "@/lib/config";
 
 function getStickyFontSize(length: number) {
@@ -44,7 +45,16 @@ export default function InteractPage() {
   const sendDrawing = useCallback(
     async (dataUrl: string) => {
       if (!identity) return;
-      await submit("drawings", { image_data: dataUrl, sender_name: identity.name }, {
+      let imageUrl: string;
+      try {
+        imageUrl = await uploadDrawingImage(dataUrl);
+      } catch {
+        await submit("drawings", { image_data: dataUrl, sender_name: identity.name }, {
+          successMessage: "Your drawing is live!",
+        });
+        return;
+      }
+      await submit("drawings", { image_data: imageUrl, sender_name: identity.name }, {
         successMessage: "Your drawing is live!",
       });
     },
@@ -103,9 +113,9 @@ export default function InteractPage() {
         <Pencil className="size-3" />
       </button>
 
-      <div className="interact-card w-full max-w-[430px] flex-1 min-h-0 flex flex-col">
-        <div className="interact-card-body rounded-2xl flex-1 min-h-0 flex flex-col">
-          <Tabs defaultValue="message" className="flex-1 min-h-0">
+      <div className="interact-card w-full max-w-[430px] flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="interact-card-body rounded-2xl flex-1 min-h-0 flex flex-col overflow-hidden">
+          <Tabs defaultValue="message" className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <TabsList className="interact-tabs-list w-full">
               <TabsTrigger value="message" className="interact-tab">
                 <MessageSquare className="size-4" />
@@ -117,19 +127,19 @@ export default function InteractPage() {
               </TabsTrigger>
             </TabsList>
 
-            <div className="grid flex-1 min-h-0">
+            <div className="grid flex-1 min-h-0 overflow-hidden">
               <TabsContent
                 value="message"
                 forceMount
-                className="mt-0 [grid-area:1/1] data-[state=inactive]:invisible min-h-0"
+                className="mt-0 [grid-area:1/1] data-[state=inactive]:invisible min-h-0 overflow-hidden"
               >
-                <div className="flex flex-col items-center h-full">
+                <div className="flex flex-col items-center h-full overflow-hidden">
                   <p className="text-white/50 text-sm flex-shrink-0 self-start">
                     Write a sticky note for the board.
                   </p>
 
-                  <div className="flex-1 min-h-0 flex items-center justify-center w-full">
-                    <div className="relative w-full aspect-square max-h-full bubble-sticky">
+                  <div className="flex-1 min-h-0 flex items-center justify-center w-full py-3 overflow-hidden">
+                    <div className="relative h-full aspect-square max-w-full bubble-sticky">
                       <Textarea
                         value={message}
                         onChange={(e) =>
@@ -152,7 +162,7 @@ export default function InteractPage() {
                     onClick={sendMessage}
                     disabled={!message.trim()}
                     isSubmitting={isSubmitting}
-                    className="w-full flex-shrink-0 mt-4"
+                    className="w-full flex-shrink-0"
                   />
                 </div>
               </TabsContent>
@@ -160,9 +170,9 @@ export default function InteractPage() {
               <TabsContent
                 value="draw"
                 forceMount
-                className="mt-0 [grid-area:1/1] data-[state=inactive]:invisible min-h-0"
+                className="mt-0 [grid-area:1/1] data-[state=inactive]:invisible min-h-0 overflow-hidden"
               >
-                <div className="flex flex-col gap-4 sm:gap-6 h-full">
+                <div className="flex flex-col gap-3 h-full overflow-hidden">
                   <p className="text-white/50 text-sm flex-shrink-0">
                     Draw something and it will appear on screen.
                   </p>

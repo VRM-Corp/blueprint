@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Eraser } from "lucide-react";
+import { Camera, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SubmitButton from "@/components/SubmitButton";
 
@@ -28,6 +28,7 @@ type Props = {
 
 export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState(COLORS[0].value);
   const [bgColor, setBgColor] = useState(BG_COLORS[0].value);
@@ -105,20 +106,47 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
     setHasContent(false);
   }, []);
 
+  const handlePhoto = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file || !canvasRef.current) return;
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current!;
+        const ctx = canvas.getContext("2d")!;
+        const cw = canvas.offsetWidth;
+        const ch = canvas.offsetHeight;
+
+        const scale = Math.max(cw / img.width, ch / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        const x = (cw - w) / 2;
+        const y = (ch - h) / 2;
+
+        ctx.drawImage(img, x, y, w, h);
+        setHasContent(true);
+        URL.revokeObjectURL(img.src);
+      };
+      img.src = URL.createObjectURL(file);
+      e.target.value = "";
+    },
+    []
+  );
+
   const handleSubmit = useCallback(() => {
     const canvas = canvasRef.current!;
-    if (bgColor === "transparent") {
-      onSubmit(canvas.toDataURL("image/png"));
-    } else {
-      const tmp = document.createElement("canvas");
-      tmp.width = canvas.width;
-      tmp.height = canvas.height;
-      const ctx = tmp.getContext("2d")!;
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, tmp.width, tmp.height);
-      ctx.drawImage(canvas, 0, 0);
-      onSubmit(tmp.toDataURL("image/png"));
-    }
+    const tmp = document.createElement("canvas");
+    tmp.width = canvas.width;
+    tmp.height = canvas.height;
+    const ctx = tmp.getContext("2d")!;
+
+    const bg = bgColor === "transparent" ? "#0a1628" : bgColor;
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, tmp.width, tmp.height);
+    ctx.drawImage(canvas, 0, 0);
+
+    onSubmit(tmp.toDataURL("image/jpeg", 0.85));
     clear();
   }, [onSubmit, clear, bgColor]);
 
@@ -143,19 +171,42 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
           onTouchMove={draw}
           onTouchEnd={stopDrawing}
         />
+
+        {!hasContent && (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="absolute bottom-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{
+              background: "var(--glass-15)",
+              border: "1px solid var(--glass-10)",
+            }}
+            aria-label="Upload photo"
+          >
+            <Camera className="size-5 text-white/70" />
+          </button>
+        )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handlePhoto}
+      />
+
+      <div className="flex items-center justify-between flex-shrink-0 gap-2 px-2 py-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {COLORS.map((c) => (
             <button
               key={c.value}
-              className="w-7 h-7 rounded-full transition-all"
+              className="w-6 h-6 rounded-full transition-all flex-shrink-0"
               style={{
                 backgroundColor: c.value,
                 boxShadow:
                   color === c.value
-                    ? `0 0 0 2.5px rgba(10,22,40,0.95), 0 0 0 4px ${c.value}`
+                    ? `0 0 0 2px rgba(10,22,40,0.95), 0 0 0 3.5px ${c.value}`
                     : "none",
                 transform: color === c.value ? "scale(1.1)" : "scale(1)",
               }}
@@ -165,11 +216,11 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
           ))}
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {[2, 4, 8].map((w) => (
             <button
               key={w}
-              className="flex items-center justify-center w-8 h-8 rounded-lg transition-all"
+              className="flex items-center justify-center w-7 h-7 rounded-lg transition-all"
               style={{
                 background:
                   lineWidth === w ? "var(--glass-10)" : "transparent",

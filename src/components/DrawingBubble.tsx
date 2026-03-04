@@ -1,12 +1,13 @@
 "use client";
 
+import { memo } from "react";
 import DraggableBubble from "./DraggableBubble";
 import SenderInfo from "./SenderInfo";
 import type { BubbleProps } from "@/lib/types";
 
 type Props = BubbleProps & { imageData: string };
 
-export default function DrawingBubble({
+export default memo(function DrawingBubble({
   imageData,
   senderName,
   avatarUrl,
@@ -21,14 +22,14 @@ export default function DrawingBubble({
       zIndex={zIndex}
       className="pt-2 px-2 pb-5 overflow-hidden bubble-polaroid"
     >
-      <div className="bubble-content p-1">
+      <div className="bubble-content">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageData}
           alt=""
           loading="lazy"
           decoding="async"
-          className="w-48 h-48 object-contain select-none"
+          className="w-44 h-44 object-cover select-none"
           draggable={false}
         />
       </div>
@@ -44,4 +45,4 @@ export default function DrawingBubble({
       )}
     </DraggableBubble>
   );
-}
+});

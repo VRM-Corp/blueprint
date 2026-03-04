@@ -17,6 +17,23 @@ function createSupabaseClient(): SupabaseClient {
 
 export const supabase = createSupabaseClient();
 
+export async function uploadDrawingImage(dataUrl: string): Promise<string> {
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const isJpeg = dataUrl.startsWith("data:image/jpeg");
+  const ext = isJpeg ? "jpg" : "png";
+  const fileName = `${crypto.randomUUID()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from("drawings")
+    .upload(fileName, blob, { contentType: blob.type, upsert: false });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("drawings").getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
 export type Message = {
   id: string;
   text: string;

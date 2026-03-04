@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useLayoutEffect, useState } from "react";
+import { memo, useRef, useLayoutEffect, useState } from "react";
 import DraggableBubble from "./DraggableBubble";
 import SenderInfo from "./SenderInfo";
 import type { BubbleProps } from "@/lib/types";
@@ -35,7 +35,7 @@ function useAutoFitFont(text: string) {
   return { containerRef, textRef, fontSize };
 }
 
-export default function MessageBubble({
+export default memo(function MessageBubble({
   text,
   senderName,
   avatarUrl,
@@ -79,4 +79,4 @@ export default function MessageBubble({
       )}
     </DraggableBubble>
   );
-}
+});

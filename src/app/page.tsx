@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import FloatingElements from "@/components/FloatingElements";
@@ -20,6 +20,56 @@ import type { Message, Drawing } from "@/lib/supabase";
 
 const { projection: P, assets } = EVENT_CONFIG;
 
+type StableCallbacks = {
+  id: string;
+  onBringToFront: (id: string) => void;
+  onHandleDragEnd: (id: string, px: number, py: number) => void;
+  onRemovePosition: (id: string) => void;
+  onDeleteItem: (id: string) => void;
+};
+
+type MemoMessageProps = StableCallbacks & React.ComponentProps<typeof MessageBubble> & { id: string };
+
+const MemoMessageBubble = memo(function MemoMessageBubble({
+  id, onBringToFront, onHandleDragEnd, onRemovePosition, onDeleteItem,
+  ...props
+}: Omit<MemoMessageProps, "onDragEnd" | "onDelete">) {
+  return (
+    <MessageBubble
+      {...props}
+      onDragEnd={(px: number, py: number) => {
+        onHandleDragEnd(id, px, py);
+        onBringToFront(id);
+      }}
+      onDelete={() => {
+        onRemovePosition(id);
+        onDeleteItem(id);
+      }}
+    />
+  );
+});
+
+type MemoDrawingProps = StableCallbacks & React.ComponentProps<typeof DrawingBubble> & { id: string };
+
+const MemoDrawingBubble = memo(function MemoDrawingBubble({
+  id, onBringToFront, onHandleDragEnd, onRemovePosition, onDeleteItem,
+  ...props
+}: Omit<MemoDrawingProps, "onDragEnd" | "onDelete">) {
+  return (
+    <DrawingBubble
+      {...props}
+      onDragEnd={(px: number, py: number) => {
+        onHandleDragEnd(id, px, py);
+        onBringToFront(id);
+      }}
+      onDelete={() => {
+        onRemovePosition(id);
+        onDeleteItem(id);
+      }}
+    />
+  );
+});
+
 const QR_FULL = P.qrSize + P.qrQuietZone * 2;
 const CORNER_POSITIONS = [
   { top: -40, left: -40, rotate: 0 },
@@ -37,9 +87,25 @@ export default function ProjectionPage() {
     useProjectionData();
 
   const isPre = phase === "pre-event";
+  const [showBubbles, setShowBubbles] = useState(false);
+
+  useEffect(() => {
+    if (!isPre) {
+      const timer = setTimeout(() => setShowBubbles(true), 1000);
+      return () => clearTimeout(timer);
+    }
+    setShowBubbles(false);
+  }, [isPre]);
+
   const zCounterRef = useRef(0);
   const zMapRef = useRef<Record<string, number>>({});
   const [, setZTick] = useState(0);
+
+  const bringToFront = useCallback((id: string) => {
+    zCounterRef.current += 1;
+    zMapRef.current[id] = zCounterRef.current;
+    setZTick((n) => n + 1);
+  }, []);
 
   const allBubbles = useMemo(() => {
     const items: Array<{ type: "message" | "drawing"; id: string; sender_name?: string; data: Message | Drawing }> = [
@@ -94,7 +160,7 @@ export default function ProjectionPage() {
     <div className="fixed inset-0 overflow-hidden select-none projection-bg">
       <FloatingElements />
 
-      {!isPre && (
+      {showBubbles && (
         <div className="fixed inset-0" style={{ zIndex: 2 }}>
           {allBubbles.map((item) => {
             if (!(item.id in zMapRef.current)) {
@@ -115,43 +181,31 @@ export default function ProjectionPage() {
               staggerIndex: staggerRef.current[item.id] ?? 0,
             };
 
-            const bringToFront = (id: string) => {
-              zCounterRef.current += 1;
-              zMapRef.current[id] = zCounterRef.current;
-              setZTick((n) => n + 1);
-            };
-
             if (item.type === "message") {
               return (
-                <MessageBubble
+                <MemoMessageBubble
                   key={item.id}
+                  id={item.id}
                   text={(item.data as Message).text}
                   {...shared}
-                  onDragEnd={(px, py) => {
-                    handleDragEnd(item.id, px, py);
-                    bringToFront(item.id);
-                  }}
-                  onDelete={() => {
-                    removePosition(item.id);
-                    deleteMessage(item.id);
-                  }}
+                  onBringToFront={bringToFront}
+                  onHandleDragEnd={handleDragEnd}
+                  onRemovePosition={removePosition}
+                  onDeleteItem={deleteMessage}
                 />
               );
             }
 
             return (
-              <DrawingBubble
+              <MemoDrawingBubble
                 key={item.id}
+                id={item.id}
                 imageData={(item.data as Drawing).image_data}
                 {...shared}
-                onDragEnd={(px, py) => {
-                  handleDragEnd(item.id, px, py);
-                  bringToFront(item.id);
-                }}
-                onDelete={() => {
-                  removePosition(item.id);
-                  deleteDrawing(item.id);
-                }}
+                onBringToFront={bringToFront}
+                onHandleDragEnd={handleDragEnd}
+                onRemovePosition={removePosition}
+                onDeleteItem={deleteDrawing}
               />
             );
           })}

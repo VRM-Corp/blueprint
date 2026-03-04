@@ -50,6 +50,14 @@ export function useRealtimeTable<T extends { id: string }>(table: string) {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table },
+        (payload) => {
+          const deleted = payload.old as { id: string };
+          setItems((prev) => prev.filter((item) => item.id !== deleted.id));
+        }
+      )
       .subscribe();
 
     return () => {

@@ -79,6 +79,14 @@ export default function IdentityForm({
           })
           .eq("id", existing.participantId);
         if (error) throw error;
+
+        if (existing.name !== trimmed) {
+          await Promise.all([
+            supabase.from("messages").update({ sender_name: trimmed }).eq("sender_name", existing.name),
+            supabase.from("drawings").update({ sender_name: trimmed }).eq("sender_name", existing.name),
+          ]);
+        }
+
         const identity: UserIdentity = {
           ...existing,
           name: trimmed,

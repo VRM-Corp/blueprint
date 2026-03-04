@@ -111,7 +111,7 @@ export default function MemberDetailPage() {
                   <span className="text-[11px] text-white/15 uppercase tracking-wider">{item.kind}</span>
                 </div>
                 {item.kind === "message" ? (
-                  <p className="text-white/90 text-[15px] leading-relaxed">{item.text}</p>
+                  <p className="text-white/90 text-[15px] leading-relaxed break-words">{item.text}</p>
                 ) : (
                   <div className="rounded-lg overflow-hidden mx-auto max-w-[280px]" style={{ background: "var(--navy)" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -151,9 +151,10 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
   }, [onSubmit, clear, bgColor]);
 
   return (
-    <div className="flex flex-col gap-4 w-full flex-1 min-h-0">
-      <div
-        className="relative w-full rounded-[14px] overflow-hidden flex-1 min-h-0"
+    <div className="flex flex-col gap-3 w-full flex-1 min-h-0">
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+        <div
+          className="relative aspect-square h-full max-w-full rounded-[14px] overflow-hidden"
         style={{
           touchAction: "none",
           background: "var(--glass-2)",
@@ -185,6 +186,7 @@ export default function DrawingCanvas({ onSubmit, isSubmitting }: Props) {
             <Camera className="size-5 text-white/70" />
           </button>
         )}
+        </div>
       </div>
 
       <input

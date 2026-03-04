@@ -83,7 +83,7 @@ export default function ProjectionPage() {
   const { w, h } = useWindowSize();
   const { ensurePosition, handleDragEnd, removePosition } =
     useBubblePositions();
-  const { messages, drawings, participants, deleteMessage, deleteDrawing } =
+  const { messages, drawings, participants, archiveMessage, archiveDrawing } =
     useProjectionData();
 
   const isPre = phase === "pre-event";
@@ -191,7 +191,7 @@ export default function ProjectionPage() {
                   onBringToFront={bringToFront}
                   onHandleDragEnd={handleDragEnd}
                   onRemovePosition={removePosition}
-                  onDeleteItem={deleteMessage}
+                  onDeleteItem={archiveMessage}
                 />
               );
             }
@@ -205,7 +205,7 @@ export default function ProjectionPage() {
                 onBringToFront={bringToFront}
                 onHandleDragEnd={handleDragEnd}
                 onRemovePosition={removePosition}
-                onDeleteItem={deleteDrawing}
+                onDeleteItem={archiveDrawing}
               />
             );
           })}

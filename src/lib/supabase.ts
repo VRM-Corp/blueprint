@@ -38,6 +38,7 @@ export type Message = {
   id: string;
   text: string;
   sender_name?: string;
+  archived?: boolean;
   created_at: string;
 };
 
@@ -45,6 +46,7 @@ export type Drawing = {
   id: string;
   image_data: string;
   sender_name?: string;
+  archived?: boolean;
   created_at: string;
 };
 

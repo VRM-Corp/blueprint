@@ -20,7 +20,8 @@ export default memo(function DrawingBubble({
     <DraggableBubble
       {...bubble}
       zIndex={zIndex}
-      className="pt-2 px-2 pb-5 overflow-hidden bubble-polaroid"
+      className="overflow-hidden bubble-polaroid"
+      style={{ width: 192, padding: "8px 8px 20px" }}
     >
       <div className="bubble-content">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -29,7 +30,7 @@ export default memo(function DrawingBubble({
           alt=""
           loading="lazy"
           decoding="async"
-          className="w-44 h-44 object-cover select-none"
+          className="w-44 h-44 object-cover select-none block"
           draggable={false}
         />
       </div>

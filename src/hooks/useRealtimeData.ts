@@ -65,6 +65,29 @@ export function useRealtimeTable<T extends { id: string }>(table: string) {
     };
   }, [table]);
 
+  const archiveItem = useCallback(
+    async (id: string) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, archived: true } : item
+        )
+      );
+      const { error: err } = await supabase
+        .from(table)
+        .update({ archived: true })
+        .eq("id", id);
+      if (err) {
+        console.error(`[Blueprint] Failed to archive in ${table}:`, err.message);
+        const { data } = await supabase
+          .from(table)
+          .select("*")
+          .order("created_at");
+        if (data) setItems(data as T[]);
+      }
+    },
+    [table]
+  );
+
   const removeItem = useCallback(
     async (id: string) => {
       setItems((prev) => prev.filter((item) => item.id !== id));
@@ -84,18 +107,20 @@ export function useRealtimeTable<T extends { id: string }>(table: string) {
     [table]
   );
 
-  return { items, error, removeItem };
+  return { items, error, archiveItem, removeItem };
 }
 
 export function useProjectionData() {
   const {
-    items: messages,
+    items: allMessages,
     error: messagesError,
+    archiveItem: archiveMessage,
     removeItem: deleteMessage,
   } = useRealtimeTable<Message>("messages");
   const {
-    items: drawings,
+    items: allDrawings,
     error: drawingsError,
+    archiveItem: archiveDrawing,
     removeItem: deleteDrawing,
   } = useRealtimeTable<Drawing>("drawings");
   const {
@@ -103,10 +128,15 @@ export function useProjectionData() {
     error: participantsError,
   } = useRealtimeTable<Participant>("participants");
 
+  const messages = allMessages.filter((m) => !m.archived);
+  const drawings = allDrawings.filter((d) => !d.archived);
+
   return {
     messages,
     drawings,
     participants,
+    archiveMessage,
+    archiveDrawing,
     deleteMessage,
     deleteDrawing,
     error: messagesError || drawingsError || participantsError,

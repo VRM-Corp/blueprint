@@ -23,12 +23,19 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
-          "--border-radius": "var(--radius)",
+          "--normal-bg": "rgba(255, 255, 255, 0.10)",
+          "--normal-text": "rgba(255, 255, 255, 0.8)",
+          "--normal-border": "rgba(255, 255, 255, 0.10)",
+          "--border-radius": "0.75rem",
+          "--width": "100%",
         } as React.CSSProperties
       }
+      toastOptions={{
+        style: {
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+        },
+      }}
       {...props}
     />
   )

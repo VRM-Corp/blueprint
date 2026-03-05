@@ -259,13 +259,12 @@ export default function ProjectionPage() {
 
       <motion.div
         className="fixed"
-        style={{ zIndex: 3, transformOrigin: "top right" }}
+        style={{ zIndex: 3, transformOrigin: "top center" }}
         initial={false}
         animate={{
           opacity: 1,
           top: isPre ? qrPos.preTop : 32,
-          left: isPre ? qrPos.preLeft : w - 40,
-          x: isPre ? "0%" : "-100%",
+          left: isPre ? qrPos.preLeft : w / 2 - (QR_FULL * P.qrDuringScale) / 2,
           scale: isPre ? 1 : P.qrDuringScale,
         }}
         transition={{ duration: P.transitionDuration, ease: "easeInOut" }}
